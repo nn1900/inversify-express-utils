@@ -30,7 +30,7 @@ export class InversifyExpressServer {
     private _routingConfig: interfaces.RoutingConfig;
     private _AuthProvider: { new(): interfaces.AuthProvider };
     private _forceControllers: boolean;
-    private _nonHttpResponseMessageValueHandler: ((value: any) => Promise<HttpResponseMessage>) | undefined;
+    private _nonHttpResponseMessageValueHandler: ((value: any) => Promise<HttpResponseMessage>) | undefined | null;
 
     /**
      * Wrapper for the express server.
@@ -48,7 +48,7 @@ export class InversifyExpressServer {
         routingConfig?: interfaces.RoutingConfig | null,
         customApp?: express.Application | null,
         authProvider?: { new(): interfaces.AuthProvider } | null,
-        nonHttpResponseMessageValueHandler?: (value: any) => Promise<HttpResponseMessage>,
+        nonHttpResponseMessageValueHandler?: ((value: any) => Promise<HttpResponseMessage>) | null,
         forceControllers = true
     ) {
         this._container = container;

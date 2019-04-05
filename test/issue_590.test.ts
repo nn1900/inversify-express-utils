@@ -18,7 +18,7 @@ describe("Issue 590", () => {
 
     it("should not throw if forceControllers is false and no bindings for controllers are declared", () => {
         let container = new Container();
-        let server = new InversifyExpressServer(container, null, null, null, null, false);
+        let server = new InversifyExpressServer(container, null, null, null, null, null, false);
         const throws = () => server.build();
         expect(throws).not.to.throw();
     });

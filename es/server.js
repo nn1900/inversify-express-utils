@@ -49,7 +49,7 @@ var InversifyExpressServer = /** @class */ (function () {
      * @param authProvider optional interfaces.AuthProvider auth provider
      * @param forceControllers optional boolean setting to force controllers (defaults do true)
      */
-    function InversifyExpressServer(container, customRouter, routingConfig, customApp, authProvider, forceControllers) {
+    function InversifyExpressServer(container, customRouter, routingConfig, customApp, authProvider, nonHttpResponseMessageValueHandler, forceControllers) {
         if (forceControllers === void 0) { forceControllers = true; }
         this._container = container;
         this._forceControllers = forceControllers;
@@ -63,6 +63,7 @@ var InversifyExpressServer = /** @class */ (function () {
             container.bind(TYPE.AuthProvider)
                 .to(this._AuthProvider);
         }
+        this._nonHttpResponseMessageValueHandler = nonHttpResponseMessageValueHandler;
     }
     /**
      * Sets the configuration function to be applied to the application.
@@ -212,11 +213,11 @@ var InversifyExpressServer = /** @class */ (function () {
     InversifyExpressServer.prototype.handlerFactory = function (controllerName, key, parameterMetadata) {
         var _this = this;
         return function (req, res, next) { return __awaiter(_this, void 0, void 0, function () {
-            var _a, args, httpContext, value, httpResponseMessage, err_1;
+            var _a, args, httpContext, value, httpResponseMessage, httpResponseMessage, err_1;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        _b.trys.push([0, 8, , 9]);
+                        _b.trys.push([0, 12, , 13]);
                         args = this.extractParameters(req, res, next, parameterMetadata);
                         httpContext = this._getHttpContext(req);
                         httpContext.container.bind(TYPE.HttpContext)
@@ -228,7 +229,7 @@ var InversifyExpressServer = /** @class */ (function () {
                         return [4 /*yield*/, this.handleHttpResponseMessage(value, res)];
                     case 2:
                         _b.sent();
-                        return [3 /*break*/, 7];
+                        return [3 /*break*/, 11];
                     case 3:
                         if (!instanceOfIHttpActionResult(value)) return [3 /*break*/, 6];
                         return [4 /*yield*/, value.executeAsync()];
@@ -237,24 +238,33 @@ var InversifyExpressServer = /** @class */ (function () {
                         return [4 /*yield*/, this.handleHttpResponseMessage(httpResponseMessage, res)];
                     case 5:
                         _b.sent();
-                        return [3 /*break*/, 7];
+                        return [3 /*break*/, 11];
                     case 6:
-                        if (value instanceof Function) {
-                            value();
-                        }
-                        else if (!res.headersSent) {
-                            if (value === undefined) {
-                                res.status(204);
-                            }
-                            res.send(value);
-                        }
-                        _b.label = 7;
-                    case 7: return [3 /*break*/, 9];
+                        if (!(value instanceof Function)) return [3 /*break*/, 7];
+                        value();
+                        return [3 /*break*/, 11];
+                    case 7:
+                        if (!!res.headersSent) return [3 /*break*/, 11];
+                        if (!this._nonHttpResponseMessageValueHandler) return [3 /*break*/, 10];
+                        return [4 /*yield*/, this._nonHttpResponseMessageValueHandler(value)];
                     case 8:
+                        httpResponseMessage = _b.sent();
+                        return [4 /*yield*/, this.handleHttpResponseMessage(httpResponseMessage, res)];
+                    case 9:
+                        _b.sent();
+                        return [2 /*return*/];
+                    case 10:
+                        if (value === undefined) {
+                            res.status(204);
+                        }
+                        res.send(value);
+                        _b.label = 11;
+                    case 11: return [3 /*break*/, 13];
+                    case 12:
                         err_1 = _b.sent();
                         next(err_1);
-                        return [3 /*break*/, 9];
-                    case 9: return [2 /*return*/];
+                        return [3 /*break*/, 13];
+                    case 13: return [2 /*return*/];
                 }
             });
         }); };
