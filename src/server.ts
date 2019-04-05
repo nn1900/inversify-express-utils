@@ -30,6 +30,7 @@ export class InversifyExpressServer {
     private _routingConfig: interfaces.RoutingConfig;
     private _AuthProvider: { new(): interfaces.AuthProvider };
     private _forceControllers: boolean;
+    private _nonHttpResponseMessageValueHandler: ((value: any) => HttpResponseMessage) | undefined;
 
     /**
      * Wrapper for the express server.
@@ -47,6 +48,7 @@ export class InversifyExpressServer {
         routingConfig?: interfaces.RoutingConfig | null,
         customApp?: express.Application | null,
         authProvider?: { new(): interfaces.AuthProvider } | null,
+        nonHttpResponseMessageValueHandler?: (value: any) => HttpResponseMessage,
         forceControllers = true
     ) {
         this._container = container;
@@ -61,6 +63,7 @@ export class InversifyExpressServer {
             container.bind<interfaces.AuthProvider>(TYPE.AuthProvider)
                 .to(this._AuthProvider);
         }
+        this._nonHttpResponseMessageValueHandler = nonHttpResponseMessageValueHandler;
     }
 
     /**
@@ -260,6 +263,11 @@ export class InversifyExpressServer {
                 } else if (value instanceof Function) {
                     value();
                 } else if (!res.headersSent) {
+                    if (this._nonHttpResponseMessageValueHandler) {
+                      const httpResponseMessage = this._nonHttpResponseMessageValueHandler(value);
+                      await this.handleHttpResponseMessage(httpResponseMessage, res);
+                      return;
+                    }
                     if (value === undefined) {
                         res.status(204);
                     }
