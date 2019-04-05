@@ -100,22 +100,33 @@ export const cookies: (cookieName?: string) => ParameterDecorator = paramDecorat
 export const next: () => ParameterDecorator = paramDecoratorFactory(PARAMETER_TYPE.NEXT);
 export const principal: () => ParameterDecorator = paramDecoratorFactory(PARAMETER_TYPE.PRINCIPAL);
 
-function paramDecoratorFactory(parameterType: PARAMETER_TYPE): (name?: string) => ParameterDecorator {
+export function registerCustomParamDecorator(
+  parameterType: any,
+  getter: (req: express.Request) => any
+): (paramName?: string, type?: string) => ParameterDecorator {
+  return paramDecoratorFactory(parameterType, getter);
+}
+
+function paramDecoratorFactory(
+  parameterType: PARAMETER_TYPE, getter?: (req: express.Request) => any
+): (name?: string) => ParameterDecorator {
     return function (name?: string): ParameterDecorator {
-        return params(parameterType, name);
+        return params(parameterType, name, getter);
     };
 }
 
-export function params(type: PARAMETER_TYPE, parameterName?: string) {
+export function params(
+  type: PARAMETER_TYPE, parameterName?: string, getter?: (req: express.Request) => any
+) {
     return function (target: Object, methodName: string, index: number) {
-
         let metadataList: interfaces.ControllerParameterMetadata = {};
         let parameterMetadataList: interfaces.ParameterMetadata[] = [];
         let parameterMetadata: interfaces.ParameterMetadata = {
             index: index,
             injectRoot: parameterName === undefined,
             parameterName: parameterName,
-            type: type
+            type: type,
+            get: getter
         };
         if (!Reflect.hasMetadata(METADATA_KEY.controllerParameter, target.constructor)) {
             parameterMetadataList.unshift(parameterMetadata);

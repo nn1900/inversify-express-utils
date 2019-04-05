@@ -318,7 +318,7 @@ export class InversifyExpressServer {
             return [req, res, next];
         }
 
-        params.forEach(({ type, index, parameterName, injectRoot }) => {
+        params.forEach(({ type, index, parameterName, injectRoot, get }) => {
             switch (type) {
                 case PARAMETER_TYPE.REQUEST:
                     args[index] = req;
@@ -345,7 +345,11 @@ export class InversifyExpressServer {
                     args[index] = this._getPrincipal(req);
                     break;
                 default:
-                    args[index] = res;
+                    if (get) {
+                      args[index] = get(req);
+                    } else {
+                      args[index] = res;
+                    }
                     break; // response
             }
         });

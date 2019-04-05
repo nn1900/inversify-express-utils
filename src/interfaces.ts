@@ -27,6 +27,7 @@ namespace interfaces {
         injectRoot: boolean;
         index: number;
         type: PARAMETER_TYPE;
+        get?: (req: express.Request) => any;
     }
 
     export interface Controller { }
