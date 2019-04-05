@@ -21,7 +21,9 @@ declare namespace interfaces {
         injectRoot: boolean;
         index: number;
         type: PARAMETER_TYPE;
-        get?: (req: express.Request) => any;
+        defaultValue?: any;
+        valueType?: string;
+        get?: (req: express.Request, name: string | undefined, defaultValue?: any, type?: string) => any;
     }
     interface Controller {
     }

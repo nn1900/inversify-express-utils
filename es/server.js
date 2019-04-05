@@ -302,6 +302,97 @@ var InversifyExpressServer = /** @class */ (function () {
             });
         });
     };
+    InversifyExpressServer.prototype.convertParameterValue = function (parameterName, value, defaultValue, valueType) {
+        var type = valueType || (defaultValue !== undefined ? (defaultValue === null ? "object" : (typeof defaultValue === "object" ? (Array.isArray(defaultValue) ? "array" : "object") : typeof defaultValue)) : "string");
+        var nullable = !type.endsWith("!");
+        type = type.replace(/!$/g, "").toLowerCase();
+        var missingRequiredQueryParameterError = function () {
+            var error = new Error("query parameter " + parameterName + " is required");
+            error.code = "missing_required_query_parameter";
+            return error;
+        };
+        var invalidQueryParameterValueError = function () {
+            var error = new Error("query parameter " + parameterName + " is invalid");
+            error.code = "invalid_query_parameter_value";
+            return error;
+        };
+        if (value === undefined) {
+            if (type === "boolean") {
+                if (defaultValue !== undefined) {
+                    return defaultValue;
+                }
+                return false;
+            }
+            if (defaultValue !== undefined) {
+                if ((type === "object" || type === "array") &&
+                    null === defaultValue &&
+                    !nullable) {
+                    throw missingRequiredQueryParameterError();
+                }
+                return defaultValue;
+            }
+            if (!nullable) {
+                throw missingRequiredQueryParameterError();
+            }
+            return value;
+        }
+        if (type === "string") {
+            return value;
+        }
+        if (null === defaultValue || (type === "object" || type === "array")) {
+            if (value === "") {
+                if (!nullable) {
+                    throw missingRequiredQueryParameterError();
+                }
+                return defaultValue;
+            }
+            var val = void 0;
+            try {
+                val = JSON.parse(value);
+            }
+            catch (e) {
+                throw invalidQueryParameterValueError();
+            }
+            if (null === val && !nullable) {
+                throw missingRequiredQueryParameterError();
+            }
+            if (null !== val && typeof val !== "object") {
+                throw invalidQueryParameterValueError();
+            }
+            if (null != val && type === "array" && !Array.isArray(val)) {
+                throw invalidQueryParameterValueError();
+            }
+            return val;
+        }
+        if (type === "number") {
+            if (value === "") {
+                if (defaultValue !== undefined) {
+                    return defaultValue;
+                }
+                if (!nullable) {
+                    throw missingRequiredQueryParameterError();
+                }
+                return undefined;
+            }
+            var val = Number(value);
+            if (isNaN(val)) {
+                throw invalidQueryParameterValueError();
+            }
+            return val;
+        }
+        if (type === "boolean") {
+            if (value === "") {
+                if (defaultValue !== undefined) {
+                    return defaultValue;
+                }
+            }
+            if (!nullable) {
+                throw missingRequiredQueryParameterError();
+            }
+            return /^(true|yes|1)$/i.test(value);
+        }
+        return value;
+    };
     InversifyExpressServer.prototype.extractParameters = function (req, res, next, params) {
         var _this = this;
         var args = [];
@@ -309,7 +400,8 @@ var InversifyExpressServer = /** @class */ (function () {
             return [req, res, next];
         }
         params.forEach(function (_a) {
-            var type = _a.type, index = _a.index, parameterName = _a.parameterName, injectRoot = _a.injectRoot, get = _a.get;
+            var type = _a.type, index = _a.index, parameterName = _a.parameterName, injectRoot = _a.injectRoot, get = _a.get, defaultValue = _a.defaultValue, valueType = _a.valueType;
+            var value;
             switch (type) {
                 case PARAMETER_TYPE.REQUEST:
                     args[index] = req;
@@ -318,10 +410,12 @@ var InversifyExpressServer = /** @class */ (function () {
                     args[index] = next;
                     break;
                 case PARAMETER_TYPE.PARAMS:
-                    args[index] = _this.getParam(req, "params", injectRoot, parameterName);
+                    value = _this.getParam(req, "params", injectRoot, parameterName);
+                    args[index] = _this.convertParameterValue(parameterName, value, defaultValue, valueType);
                     break;
                 case PARAMETER_TYPE.QUERY:
-                    args[index] = _this.getParam(req, "query", injectRoot, parameterName);
+                    value = _this.getParam(req, "query", injectRoot, parameterName);
+                    args[index] = _this.convertParameterValue(parameterName, value, defaultValue, valueType);
                     break;
                 case PARAMETER_TYPE.BODY:
                     args[index] = req.body;
@@ -337,7 +431,7 @@ var InversifyExpressServer = /** @class */ (function () {
                     break;
                 default:
                     if (get) {
-                        args[index] = get(req);
+                        args[index] = get(req, parameterName, defaultValue, valueType);
                     }
                     else {
                         args[index] = res;

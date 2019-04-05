@@ -92,8 +92,10 @@ export function httpMethod(method: string, path: string, ...middleware: interfac
 
 export const request: () => ParameterDecorator = paramDecoratorFactory(PARAMETER_TYPE.REQUEST);
 export const response: () => ParameterDecorator = paramDecoratorFactory(PARAMETER_TYPE.RESPONSE);
-export const requestParam: (paramName?: string) => ParameterDecorator = paramDecoratorFactory(PARAMETER_TYPE.PARAMS);
-export const queryParam: (queryParamName?: string) => ParameterDecorator = paramDecoratorFactory(PARAMETER_TYPE.QUERY);
+export const requestParam: (paramName?: string, defaultValue?: any, type?: string) => ParameterDecorator
+  = paramDecoratorFactory(PARAMETER_TYPE.PARAMS);
+export const queryParam: (queryParamName?: string, defaultValue?: any, type?: string) =>
+  ParameterDecorator = paramDecoratorFactory(PARAMETER_TYPE.QUERY);
 export const requestBody: () => ParameterDecorator = paramDecoratorFactory(PARAMETER_TYPE.BODY);
 export const requestHeaders: (headerName?: string) => ParameterDecorator = paramDecoratorFactory(PARAMETER_TYPE.HEADERS);
 export const cookies: (cookieName?: string) => ParameterDecorator = paramDecoratorFactory(PARAMETER_TYPE.COOKIES);
@@ -102,21 +104,26 @@ export const principal: () => ParameterDecorator = paramDecoratorFactory(PARAMET
 
 export function registerCustomParamDecorator(
   parameterType: any,
-  getter: (req: express.Request) => any
-): (paramName?: string, type?: string) => ParameterDecorator {
+  getter: (req: express.Request, name: string | undefined, defaultValue?: any, type?: string) => any
+): (paramName?: string, defaultValue?: any, type?: string) => ParameterDecorator {
   return paramDecoratorFactory(parameterType, getter);
 }
 
 function paramDecoratorFactory(
-  parameterType: PARAMETER_TYPE, getter?: (req: express.Request) => any
+  parameterType: PARAMETER_TYPE,
+  getter?: (req: express.Request, name: string | undefined, defaultValue?: any, type?: string) => any
 ): (name?: string) => ParameterDecorator {
-    return function (name?: string): ParameterDecorator {
-        return params(parameterType, name, getter);
+    return function (name?: string, defaultValue?: any, type?: string): ParameterDecorator {
+        return params(parameterType, name, getter, defaultValue, type);
     };
 }
 
 export function params(
-  type: PARAMETER_TYPE, parameterName?: string, getter?: (req: express.Request) => any
+  type: PARAMETER_TYPE,
+  parameterName?: string,
+  getter?: (req: express.Request, name: string | undefined, defaultValue?: any, type?: string) => any,
+  defaultValue?: any,
+  valueType?: string
 ) {
     return function (target: Object, methodName: string, index: number) {
         let metadataList: interfaces.ControllerParameterMetadata = {};
@@ -126,7 +133,9 @@ export function params(
             injectRoot: parameterName === undefined,
             parameterName: parameterName,
             type: type,
-            get: getter
+            get: getter,
+            defaultValue,
+            valueType
         };
         if (!Reflect.hasMetadata(METADATA_KEY.controllerParameter, target.constructor)) {
             parameterMetadataList.unshift(parameterMetadata);

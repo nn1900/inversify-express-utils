@@ -53,6 +53,7 @@ export declare class InversifyExpressServer {
     private _getHttpContext;
     private _createHttpContext;
     private _getCurrentUser;
+    private convertParameterValue;
     private extractParameters;
     private getParam;
     private _getPrincipal;

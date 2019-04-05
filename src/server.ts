@@ -249,7 +249,7 @@ export class InversifyExpressServer {
                 httpContext.container.bind<interfaces.HttpContext>(TYPE.HttpContext)
                     .toConstantValue(httpContext);
 
-                // invoke controller's action
+                // invoke controllerparameterNames action
                 const value = await httpContext.container.getNamed<any>(TYPE.Controller, controllerName)[key](...args);
 
                 if (value instanceof HttpResponseMessage) {
@@ -311,6 +311,128 @@ export class InversifyExpressServer {
         });
     }
 
+    private convertParameterValue(
+      parameterName: string,
+      value: string | undefined,
+      defaultValue?: any,
+      valueType?: string
+    ): any {
+      let type = valueType || (
+        defaultValue !== undefined ? (
+          defaultValue === null ? "object" : (
+            typeof defaultValue === "object" ? (
+              Array.isArray(defaultValue) ? "array" : "object"
+            ) : typeof defaultValue
+          )
+        ) : "string"
+        );
+      const nullable = !type.endsWith("!");
+      type = type.replace(/!$/g, "").toLowerCase();
+
+      const missingRequiredQueryParameterError = () => {
+        const error = new Error(`query parameter ${parameterName} is required`);
+        (error as any).code = "missing_required_query_parameter";
+        return error;
+      };
+
+      const invalidQueryParameterValueError = () => {
+        const error = new Error(`query parameter ${parameterName} is invalid`);
+        (error as any).code = "invalid_query_parameter_value";
+        return error;
+      };
+
+      if (value === undefined) {
+        if (type === "boolean") {
+          if (defaultValue !== undefined) {
+            return defaultValue;
+          }
+          return false;
+        }
+
+        if (defaultValue !== undefined) {
+          if ((type === "object" || type === "array") &&
+            null === defaultValue &&
+            !nullable
+          ) {
+            throw missingRequiredQueryParameterError();
+          }
+          return defaultValue;
+        }
+
+        if (!nullable) {
+          throw missingRequiredQueryParameterError();
+        }
+
+        return value;
+      }
+
+      if (type === "string") {
+        return value;
+      }
+
+      if (null === defaultValue || (type === "object" || type === "array")) {
+        if (value === "") {
+          if (!nullable) {
+            throw missingRequiredQueryParameterError();
+          }
+          return defaultValue;
+        }
+
+        let val: any;
+
+        try {
+          val = JSON.parse(value);
+        } catch (e) {
+          throw invalidQueryParameterValueError();
+        }
+
+        if (null === val && !nullable) {
+          throw missingRequiredQueryParameterError();
+        }
+
+        if (null !== val && typeof val !== "object") {
+          throw invalidQueryParameterValueError();
+        }
+
+        if (null != val && type === "array" && !Array.isArray(val)) {
+          throw invalidQueryParameterValueError();
+        }
+
+        return val;
+      }
+
+      if (type === "number") {
+        if (value === "") {
+          if (defaultValue !== undefined) {
+            return defaultValue;
+          }
+          if (!nullable) {
+            throw missingRequiredQueryParameterError();
+          }
+          return undefined;
+        }
+        const val = Number(value);
+        if (isNaN(val)) {
+          throw invalidQueryParameterValueError();
+        }
+        return val;
+      }
+
+      if (type === "boolean") {
+        if (value === "") {
+          if (defaultValue !== undefined) {
+            return defaultValue;
+          }
+        }
+        if (!nullable) {
+          throw missingRequiredQueryParameterError();
+        }
+        return /^(true|yes|1)$/i.test(value);
+      }
+
+      return value;
+    }
+
     private extractParameters(req: express.Request, res: express.Response, next: express.NextFunction,
         params: interfaces.ParameterMetadata[]): any[] {
         let args: any[] = [];
@@ -318,7 +440,8 @@ export class InversifyExpressServer {
             return [req, res, next];
         }
 
-        params.forEach(({ type, index, parameterName, injectRoot, get }) => {
+        params.forEach(({ type, index, parameterName, injectRoot, get, defaultValue, valueType }) => {
+            let value;
             switch (type) {
                 case PARAMETER_TYPE.REQUEST:
                     args[index] = req;
@@ -327,10 +450,16 @@ export class InversifyExpressServer {
                     args[index] = next;
                     break;
                 case PARAMETER_TYPE.PARAMS:
-                    args[index] = this.getParam(req, "params", injectRoot, parameterName);
+                    value = this.getParam(req, "params", injectRoot, parameterName);
+                    args[index] = this.convertParameterValue(
+                      parameterName!, value, defaultValue, valueType
+                      );
                     break;
                 case PARAMETER_TYPE.QUERY:
-                    args[index] = this.getParam(req, "query", injectRoot, parameterName);
+                    value = this.getParam(req, "query", injectRoot, parameterName);
+                    args[index] = this.convertParameterValue(
+                      parameterName!, value, defaultValue, valueType
+                      );
                     break;
                 case PARAMETER_TYPE.BODY:
                     args[index] = req.body;
@@ -346,7 +475,7 @@ export class InversifyExpressServer {
                     break;
                 default:
                     if (get) {
-                      args[index] = get(req);
+                      args[index] = get(req, parameterName, defaultValue, valueType);
                     } else {
                       args[index] = res;
                     }

@@ -13,12 +13,12 @@ export declare function httpDelete(path: string, ...middleware: interfaces.Middl
 export declare function httpMethod(method: string, path: string, ...middleware: interfaces.Middleware[]): interfaces.HandlerDecorator;
 export declare const request: () => ParameterDecorator;
 export declare const response: () => ParameterDecorator;
-export declare const requestParam: (paramName?: string) => ParameterDecorator;
-export declare const queryParam: (queryParamName?: string) => ParameterDecorator;
+export declare const requestParam: (paramName?: string, defaultValue?: any, type?: string) => ParameterDecorator;
+export declare const queryParam: (queryParamName?: string, defaultValue?: any, type?: string) => ParameterDecorator;
 export declare const requestBody: () => ParameterDecorator;
 export declare const requestHeaders: (headerName?: string) => ParameterDecorator;
 export declare const cookies: (cookieName?: string) => ParameterDecorator;
 export declare const next: () => ParameterDecorator;
 export declare const principal: () => ParameterDecorator;
-export declare function registerCustomParamDecorator(parameterType: any, getter: (req: express.Request) => any): (paramName?: string, type?: string) => ParameterDecorator;
-export declare function params(type: PARAMETER_TYPE, parameterName?: string, getter?: (req: express.Request) => any): (target: Object, methodName: string, index: number) => void;
+export declare function registerCustomParamDecorator(parameterType: any, getter: (req: express.Request, name: string | undefined, defaultValue?: any, type?: string) => any): (paramName?: string, defaultValue?: any, type?: string) => ParameterDecorator;
+export declare function params(type: PARAMETER_TYPE, parameterName?: string, getter?: (req: express.Request, name: string | undefined, defaultValue?: any, type?: string) => any, defaultValue?: any, valueType?: string): (target: Object, methodName: string, index: number) => void;

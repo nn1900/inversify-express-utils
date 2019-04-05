@@ -110,11 +110,11 @@ export function registerCustomParamDecorator(parameterType, getter) {
     return paramDecoratorFactory(parameterType, getter);
 }
 function paramDecoratorFactory(parameterType, getter) {
-    return function (name) {
-        return params(parameterType, name, getter);
+    return function (name, defaultValue, type) {
+        return params(parameterType, name, getter, defaultValue, type);
     };
 }
-export function params(type, parameterName, getter) {
+export function params(type, parameterName, getter, defaultValue, valueType) {
     return function (target, methodName, index) {
         var metadataList = {};
         var parameterMetadataList = [];
@@ -123,7 +123,9 @@ export function params(type, parameterName, getter) {
             injectRoot: parameterName === undefined,
             parameterName: parameterName,
             type: type,
-            get: getter
+            get: getter,
+            defaultValue: defaultValue,
+            valueType: valueType
         };
         if (!Reflect.hasMetadata(METADATA_KEY.controllerParameter, target.constructor)) {
             parameterMetadataList.unshift(parameterMetadata);
