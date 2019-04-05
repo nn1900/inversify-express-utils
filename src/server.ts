@@ -20,6 +20,8 @@ import {
 import { HttpResponseMessage } from "./httpResponseMessage";
 import { OutgoingHttpHeaders } from "http";
 
+type NonHttpResponseMessageValueHandler = (value: any, req: express.Request) => Promise<HttpResponseMessage>;
+
 export class InversifyExpressServer {
 
     private _router: express.Router;
@@ -30,7 +32,7 @@ export class InversifyExpressServer {
     private _routingConfig: interfaces.RoutingConfig;
     private _AuthProvider: { new(): interfaces.AuthProvider };
     private _forceControllers: boolean;
-    private _nonHttpResponseMessageValueHandler: ((value: any) => Promise<HttpResponseMessage>) | undefined | null;
+    private _nonHttpResponseMessageValueHandler: NonHttpResponseMessageValueHandler | undefined | null;
 
     /**
      * Wrapper for the express server.
@@ -48,7 +50,7 @@ export class InversifyExpressServer {
         routingConfig?: interfaces.RoutingConfig | null,
         customApp?: express.Application | null,
         authProvider?: { new(): interfaces.AuthProvider } | null,
-        nonHttpResponseMessageValueHandler?: ((value: any) => Promise<HttpResponseMessage>) | null,
+        nonHttpResponseMessageValueHandler?: NonHttpResponseMessageValueHandler | null,
         forceControllers = true
     ) {
         this._container = container;
@@ -264,7 +266,7 @@ export class InversifyExpressServer {
                     value();
                 } else if (!res.headersSent) {
                     if (this._nonHttpResponseMessageValueHandler) {
-                      const httpResponseMessage = await this._nonHttpResponseMessageValueHandler(value);
+                      const httpResponseMessage = await this._nonHttpResponseMessageValueHandler(value, req);
                       await this.handleHttpResponseMessage(httpResponseMessage, res);
                       return;
                     }

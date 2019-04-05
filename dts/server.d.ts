@@ -2,6 +2,7 @@ import * as express from "express";
 import * as inversify from "inversify";
 import { interfaces } from "./interfaces";
 import { HttpResponseMessage } from "./httpResponseMessage";
+declare type NonHttpResponseMessageValueHandler = (value: any, req: express.Request) => Promise<HttpResponseMessage>;
 export declare class InversifyExpressServer {
     private _router;
     private _container;
@@ -24,7 +25,7 @@ export declare class InversifyExpressServer {
      */
     constructor(container: inversify.interfaces.Container, customRouter?: express.Router | null, routingConfig?: interfaces.RoutingConfig | null, customApp?: express.Application | null, authProvider?: {
         new (): interfaces.AuthProvider;
-    } | null, nonHttpResponseMessageValueHandler?: ((value: any) => Promise<HttpResponseMessage>) | null, forceControllers?: boolean);
+    } | null, nonHttpResponseMessageValueHandler?: NonHttpResponseMessageValueHandler | null, forceControllers?: boolean);
     /**
      * Sets the configuration function to be applied to the application.
      * Note that the config function is not actually executed until a call to InversifyExpresServer.build().
@@ -60,3 +61,4 @@ export declare class InversifyExpressServer {
     private getParam;
     private _getPrincipal;
 }
+export {};
