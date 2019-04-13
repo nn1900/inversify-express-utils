@@ -20,7 +20,7 @@ import {
 import { HttpResponseMessage } from "./httpResponseMessage";
 import { OutgoingHttpHeaders } from "http";
 
-type NonHttpResponseMessageValueHandler = (value: any, req: express.Request) => Promise<HttpResponseMessage>;
+type NonHttpResponseMessageValueHandler = (value: any, req: express.Request) => Promise<HttpResponseMessage | null | undefined>;
 
 export class InversifyExpressServer {
 
@@ -267,8 +267,10 @@ export class InversifyExpressServer {
                 } else if (!res.headersSent) {
                     if (this._nonHttpResponseMessageValueHandler) {
                       const httpResponseMessage = await this._nonHttpResponseMessageValueHandler(value, req);
-                      await this.handleHttpResponseMessage(httpResponseMessage, res);
-                      return;
+                      if (httpResponseMessage) {
+                        await this.handleHttpResponseMessage(httpResponseMessage, res);
+                        return;
+                      }
                     }
                     if (value === undefined) {
                         res.status(204);

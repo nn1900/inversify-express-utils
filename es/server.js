@@ -249,6 +249,7 @@ var InversifyExpressServer = /** @class */ (function () {
                         return [4 /*yield*/, this._nonHttpResponseMessageValueHandler(value, req)];
                     case 8:
                         httpResponseMessage = _b.sent();
+                        if (!httpResponseMessage) return [3 /*break*/, 10];
                         return [4 /*yield*/, this.handleHttpResponseMessage(httpResponseMessage, res)];
                     case 9:
                         _b.sent();

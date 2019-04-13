@@ -2,7 +2,7 @@ import * as express from "express";
 import * as inversify from "inversify";
 import { interfaces } from "./interfaces";
 import { HttpResponseMessage } from "./httpResponseMessage";
-declare type NonHttpResponseMessageValueHandler = (value: any, req: express.Request) => Promise<HttpResponseMessage>;
+declare type NonHttpResponseMessageValueHandler = (value: any, req: express.Request) => Promise<HttpResponseMessage | null | undefined>;
 export declare class InversifyExpressServer {
     private _router;
     private _container;
