@@ -1,3 +1,10 @@
+var __spreadArrays = (this && this.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
 import { inject, injectable, decorate } from "inversify";
 import { TYPE, METADATA_KEY, PARAMETER_TYPE } from "./constants";
 export var injectHttpContext = inject(TYPE.HttpContext);
@@ -21,7 +28,7 @@ export function controller(path) {
         // declaring additonal globals. Also, the Reflect is avaiable
         // in both node and web browsers.
         var previousMetadata = Reflect.getMetadata(METADATA_KEY.controller, Reflect) || [];
-        var newMetadata = [currentMetadata].concat(previousMetadata);
+        var newMetadata = __spreadArrays([currentMetadata], previousMetadata);
         Reflect.defineMetadata(METADATA_KEY.controller, newMetadata, Reflect);
     };
 }
@@ -30,49 +37,49 @@ export function all(path) {
     for (var _i = 1; _i < arguments.length; _i++) {
         middleware[_i - 1] = arguments[_i];
     }
-    return httpMethod.apply(void 0, ["all", path].concat(middleware));
+    return httpMethod.apply(void 0, __spreadArrays(["all", path], middleware));
 }
 export function httpGet(path) {
     var middleware = [];
     for (var _i = 1; _i < arguments.length; _i++) {
         middleware[_i - 1] = arguments[_i];
     }
-    return httpMethod.apply(void 0, ["get", path].concat(middleware));
+    return httpMethod.apply(void 0, __spreadArrays(["get", path], middleware));
 }
 export function httpPost(path) {
     var middleware = [];
     for (var _i = 1; _i < arguments.length; _i++) {
         middleware[_i - 1] = arguments[_i];
     }
-    return httpMethod.apply(void 0, ["post", path].concat(middleware));
+    return httpMethod.apply(void 0, __spreadArrays(["post", path], middleware));
 }
 export function httpPut(path) {
     var middleware = [];
     for (var _i = 1; _i < arguments.length; _i++) {
         middleware[_i - 1] = arguments[_i];
     }
-    return httpMethod.apply(void 0, ["put", path].concat(middleware));
+    return httpMethod.apply(void 0, __spreadArrays(["put", path], middleware));
 }
 export function httpPatch(path) {
     var middleware = [];
     for (var _i = 1; _i < arguments.length; _i++) {
         middleware[_i - 1] = arguments[_i];
     }
-    return httpMethod.apply(void 0, ["patch", path].concat(middleware));
+    return httpMethod.apply(void 0, __spreadArrays(["patch", path], middleware));
 }
 export function httpHead(path) {
     var middleware = [];
     for (var _i = 1; _i < arguments.length; _i++) {
         middleware[_i - 1] = arguments[_i];
     }
-    return httpMethod.apply(void 0, ["head", path].concat(middleware));
+    return httpMethod.apply(void 0, __spreadArrays(["head", path], middleware));
 }
 export function httpDelete(path) {
     var middleware = [];
     for (var _i = 1; _i < arguments.length; _i++) {
         middleware[_i - 1] = arguments[_i];
     }
-    return httpMethod.apply(void 0, ["delete", path].concat(middleware));
+    return httpMethod.apply(void 0, __spreadArrays(["delete", path], middleware));
 }
 export function httpMethod(method, path) {
     var middleware = [];

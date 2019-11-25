@@ -2,6 +2,6 @@
 import { OutgoingHttpHeaders } from "http";
 export declare abstract class HttpContent {
     private _headers;
-    readonly headers: OutgoingHttpHeaders;
+    get headers(): OutgoingHttpHeaders;
     abstract readAsStringAsync(): Promise<string>;
 }

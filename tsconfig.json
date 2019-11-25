@@ -13,6 +13,6 @@
         "noImplicitAny": true,
         "preserveConstEnums": true,
         "suppressImplicitAnyIndexErrors": true,
-        "strictNullChecks": true,
+        "strictNullChecks": true
     }
 }

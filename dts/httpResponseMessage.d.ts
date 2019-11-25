@@ -4,9 +4,12 @@ import { HttpContent } from "./content/httpContent";
 export declare class HttpResponseMessage {
     private _content;
     private _headers;
-    headers: OutgoingHttpHeaders;
-    content: HttpContent;
+    get headers(): OutgoingHttpHeaders;
+    set headers(headers: OutgoingHttpHeaders);
+    get content(): HttpContent;
+    set content(value: HttpContent);
     private _statusCode;
-    statusCode: number;
+    get statusCode(): number;
+    set statusCode(code: number);
     constructor(statusCode?: number);
 }
