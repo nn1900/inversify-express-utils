@@ -3,7 +3,7 @@ import { controller, httpMethod, httpGet, httpPut, httpPost, httpPatch,
         httpHead, all, httpDelete, request, response, requestParam, queryParam,
         requestBody, requestHeaders, cookies, next, principal, injectHttpContext,
         registerCustomParamDecorator } from "./decorators";
-import { TYPE } from "./constants";
+import { TYPE, METADATA_KEY } from "./constants";
 import { interfaces } from "./interfaces";
 import * as results from "./results";
 import { BaseHttpController } from "./base_http_controller";
@@ -32,6 +32,7 @@ export {
     all,
     httpDelete,
     TYPE,
+    METADATA_KEY,
     request,
     response,
     requestParam,
