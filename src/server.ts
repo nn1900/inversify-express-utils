@@ -255,7 +255,9 @@ export class InversifyExpressServer {
                     .toConstantValue(httpContext);
 
                 // invoke controllerparameterNames action
-                const value = await httpContext.container.getNamed<any>(TYPE.Controller, controllerName)[key](...args);
+                const controller = httpContext.container.getNamed<any>(TYPE.Controller, controllerName);
+                controller.httpContext = httpContext;
+                const value = await controller[key](...args);
 
                 if (value instanceof HttpResponseMessage) {
                     await this.handleHttpResponseMessage(value, res);

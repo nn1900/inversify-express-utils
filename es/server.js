@@ -221,32 +221,33 @@ var InversifyExpressServer = /** @class */ (function () {
     InversifyExpressServer.prototype.handlerFactory = function (controllerName, key, parameterMetadata) {
         var _this = this;
         return function (req, res, next) { return __awaiter(_this, void 0, void 0, function () {
-            var args, httpContext, value, httpResponseMessage, httpResponseMessage, err_1;
-            var _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var args, httpContext, controller, value, httpResponseMessage, httpResponseMessage, err_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
-                        _b.trys.push([0, 12, , 13]);
+                        _a.trys.push([0, 12, , 13]);
                         args = this.extractParameters(req, res, next, parameterMetadata);
                         httpContext = this._getHttpContext(req);
                         httpContext.container.bind(TYPE.HttpContext)
                             .toConstantValue(httpContext);
-                        return [4 /*yield*/, (_a = httpContext.container.getNamed(TYPE.Controller, controllerName))[key].apply(_a, args)];
+                        controller = httpContext.container.getNamed(TYPE.Controller, controllerName);
+                        controller.httpContext = httpContext;
+                        return [4 /*yield*/, controller[key].apply(controller, args)];
                     case 1:
-                        value = _b.sent();
+                        value = _a.sent();
                         if (!(value instanceof HttpResponseMessage)) return [3 /*break*/, 3];
                         return [4 /*yield*/, this.handleHttpResponseMessage(value, res)];
                     case 2:
-                        _b.sent();
+                        _a.sent();
                         return [3 /*break*/, 11];
                     case 3:
                         if (!instanceOfIHttpActionResult(value)) return [3 /*break*/, 6];
                         return [4 /*yield*/, value.executeAsync()];
                     case 4:
-                        httpResponseMessage = _b.sent();
+                        httpResponseMessage = _a.sent();
                         return [4 /*yield*/, this.handleHttpResponseMessage(httpResponseMessage, res)];
                     case 5:
-                        _b.sent();
+                        _a.sent();
                         return [3 /*break*/, 11];
                     case 6:
                         if (!(value instanceof Function)) return [3 /*break*/, 7];
@@ -257,21 +258,21 @@ var InversifyExpressServer = /** @class */ (function () {
                         if (!this._nonHttpResponseMessageValueHandler) return [3 /*break*/, 10];
                         return [4 /*yield*/, this._nonHttpResponseMessageValueHandler(value, req)];
                     case 8:
-                        httpResponseMessage = _b.sent();
+                        httpResponseMessage = _a.sent();
                         if (!httpResponseMessage) return [3 /*break*/, 10];
                         return [4 /*yield*/, this.handleHttpResponseMessage(httpResponseMessage, res)];
                     case 9:
-                        _b.sent();
+                        _a.sent();
                         return [2 /*return*/];
                     case 10:
                         if (value === undefined) {
                             res.status(204);
                         }
                         res.send(value);
-                        _b.label = 11;
+                        _a.label = 11;
                     case 11: return [3 /*break*/, 13];
                     case 12:
-                        err_1 = _b.sent();
+                        err_1 = _a.sent();
                         next(err_1);
                         return [3 /*break*/, 13];
                     case 13: return [2 /*return*/];
